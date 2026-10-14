@@ -7,7 +7,6 @@ export default function Login() {
     const [isSignUp, setIsSignUp] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('user');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
@@ -16,7 +15,7 @@ export default function Login() {
         setLoading(true);
         try {
             if (isSignUp) {
-                await signUp(email, password, role);
+                await signUp(email, password);
                 alert("Account created! You can now log in.");
                 setIsSignUp(false);
             } else {
@@ -52,13 +51,6 @@ export default function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         required
                     />
-                    {isSignUp && (
-                        <select value={role} onChange={(e) => setRole(e.target.value)}>
-                            <option value="user">User (Upload/Download)</option>
-                            <option value="admin">Admin (All Permissions)</option>
-                            <option value="viewer">Viewer (Download Only)</option>
-                        </select>
-                    )}
                     <button type="submit" disabled={loading}>
                         {loading ? 'Processing...' : (isSignUp ? 'Register' : 'Login')}
                     </button>

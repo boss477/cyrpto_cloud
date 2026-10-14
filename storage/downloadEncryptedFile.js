@@ -38,7 +38,7 @@ export async function downloadEncryptedFile(fileRecord) {
     const url = URL.createObjectURL(decryptedBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = fileRecord.filename;
+    a.download = fileRecord.filename || 'secure-file';
     a.click();
     URL.revokeObjectURL(url);
 }

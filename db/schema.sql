@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS files (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     filename TEXT, -- Nullable for text-only entries
-    description TEXT, -- Encrypted notes
+    description TEXT, -- Base64 AES-GCM ciphertext for encrypted notes
     owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
     storage_path TEXT, -- Nullable for text-only entries
     encrypted_key TEXT NOT NULL, -- AES key encrypted with owner's RSA public key
@@ -66,3 +66,29 @@ CREATE POLICY "Admin can delete files" ON files FOR DELETE USING (
   auth.uid() = owner_id OR 
   coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') = 'admin'
 );
+
+-- Private storage bucket and per-user object access.
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('secure-files', 'secure-files', false)
+ON CONFLICT (id) DO UPDATE SET public = false;
+
+DROP POLICY IF EXISTS "Users can upload own encrypted files" ON storage.objects;
+CREATE POLICY "Users can upload own encrypted files" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'secure-files' AND (storage.foldername(name))[1] = 'files' AND (storage.foldername(name))[2] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "Users can read permitted encrypted files" ON storage.objects;
+CREATE POLICY "Users can read permitted encrypted files" ON storage.objects
+FOR SELECT TO authenticated
+USING (bucket_id = 'secure-files' AND (storage.foldername(name))[1] = 'files' AND (
+  (storage.foldername(name))[2] = auth.uid()::text OR
+  coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') IN ('admin', 'viewer')
+));
+
+DROP POLICY IF EXISTS "Owners and admins can delete encrypted files" ON storage.objects;
+CREATE POLICY "Owners and admins can delete encrypted files" ON storage.objects
+FOR DELETE TO authenticated
+USING (bucket_id = 'secure-files' AND (storage.foldername(name))[1] = 'files' AND (
+  (storage.foldername(name))[2] = auth.uid()::text OR
+  coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') = 'admin'
+));

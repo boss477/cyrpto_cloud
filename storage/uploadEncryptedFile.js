@@ -39,12 +39,21 @@ export async function uploadEncryptedFile(file, description = '') {
         const { ciphertext } = await aesEncrypt(fileBuffer, aesKey, iv); // Adjusted to accept key/iv
 
         // 3. Upload encrypted file to Supabase Storage
-        storagePath = `files/${user.id}/${Date.now()}_${file.name}`;
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        storagePath = `files/${user.id}/${crypto.randomUUID()}_${safeName}`;
         const { error: storageError } = await supabase.storage
             .from('secure-files')
             .upload(storagePath, ciphertext);
 
         if (storageError) throw storageError;
+    }
+
+    // Encrypt the optional note with the same per-record key and IV.
+    let encryptedDescription = null;
+    if (description.trim()) {
+        const encodedDescription = new TextEncoder().encode(description);
+        const encryptedNote = await aesEncrypt(encodedDescription, aesKey, iv);
+        encryptedDescription = btoa(String.fromCharCode(...new Uint8Array(encryptedNote.ciphertext)));
     }
 
     // 4. Encrypt AES key with user's RSA Public Key
@@ -59,13 +68,16 @@ export async function uploadEncryptedFile(file, description = '') {
         .from('files')
         .insert({
             filename: filename,
-            description: description, // This is our text note
+            description: encryptedDescription,
             owner_id: user.id,
             storage_path: storagePath,
             encrypted_key: JSON.stringify({ key: encryptedKeyB64, iv: ivB64 }),
         });
 
-    if (dbError) throw dbError;
+    if (dbError) {
+        if (storagePath) await supabase.storage.from('secure-files').remove([storagePath]);
+        throw dbError;
+    }
 
     return { success: true };
 }

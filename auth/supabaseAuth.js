@@ -1,7 +1,8 @@
 import { supabase } from '../utils/supabaseClient';
 import { generateRSAKeyPair } from '../encryption/generateKeys';
 
-export async function signUp(email, password, role = 'user') {
+export async function signUp(email, password) {
+    const role = 'user';
     let authDataResult;
     let user;
 
