@@ -1,8 +1,4 @@
-import Head from 'next/head';
-import FileList from '../components/FileList';
-import Link from 'next/link';
-import { signOut } from '../auth/supabaseAuth';
-import { useRouter } from 'next/router';
+import Head from 'next/head'; import FileList from '../components/FileList'; import Link from 'next/link'; import { signOut } from '../auth/supabaseAuth'; import { useRouter } from 'next/router'; import Icon from '../components/Icon';
 
 export default function Dashboard() {
     const router = useRouter();
@@ -13,25 +9,15 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="container">
+        <div className="app-shell">
             <Head>
                 <title>Dashboard | Secure Storage</title>
             </Head>
-            <nav>
-                <h1>Secure Cloud Storage</h1>
-                <div>
-                    <Link href="/upload">Upload</Link>
-                    <button onClick={handleLogout} style={{ marginLeft: '20px' }}>Logout</button>
-                </div>
-            </nav>
-            <main>
+            <header className="topbar"><Link href="/dashboard" className="brand"><span className="brand-mark"><Icon name="lock" size={19}/></span>Vaultly</Link><button className="btn btn-ghost" onClick={handleLogout}>Sign out</button></header>
+            <main className="page-wrap">
+                <div className="dashboard-head"><div><div className="eyebrow">Private workspace</div><h1 className="page-title">Your secure vault</h1><p className="page-subtitle">Encrypted files and notes, protected in transit and at rest.</p></div><Link className="btn btn-primary" href="/upload"><Icon name="upload" size={17}/>Add to vault</Link></div>
                 <FileList />
             </main>
-            <style jsx>{`
-                .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-                nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-                nav a { text-decoration: none; color: blue; font-weight: bold; }
-            `}</style>
         </div>
     );
 }

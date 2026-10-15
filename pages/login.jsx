@@ -2,72 +2,11 @@ import { useState } from 'react';
 import Head from 'next/head';
 import { signUp, signIn } from '../auth/supabaseAuth';
 import { useRouter } from 'next/router';
+import Icon from '../components/Icon';
 
 export default function Login() {
-    const [isSignUp, setIsSignUp] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const router = useRouter();
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            if (isSignUp) {
-                await signUp(email, password);
-                alert("Account created! You can now log in.");
-                setIsSignUp(false);
-            } else {
-                await signIn(email, password);
-                router.push('/dashboard');
-            }
-        } catch (error) {
-            alert(error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="container">
-            <Head>
-                <title>{isSignUp ? 'Sign Up' : 'Login'} | Secure Storage</title>
-            </Head>
-            <div className="card">
-                <h1>{isSignUp ? 'Create Account' : 'Login'}</h1>
-                <form onSubmit={handleSubmit}>
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                    />
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                    <button type="submit" disabled={loading}>
-                        {loading ? 'Processing...' : (isSignUp ? 'Register' : 'Login')}
-                    </button>
-                </form>
-                <p onClick={() => setIsSignUp(!isSignUp)}>
-                    {isSignUp ? 'Already have an account? Login' : 'Need an account? Sign Up'}
-                </p>
-            </div>
-            <style jsx>{`
-                .container { display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5f5f5; }
-                .card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-                form { display: flex; flex-direction: column; gap: 15px; }
-                input, select, button { padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
-                button { background: #0070f3; color: white; border: none; cursor: pointer; }
-                button:disabled { background: #ccc; }
-                p { text-align: center; color: #0070f3; cursor: pointer; margin-top: 20px; }
-            `}</style>
-        </div>
-    );
+  const [isSignUp, setIsSignUp] = useState(false), [email, setEmail] = useState(''), [password, setPassword] = useState(''), [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const handleSubmit = async (e) => { e.preventDefault(); setLoading(true); try { if (isSignUp) { await signUp(email, password); alert('Account created! You can now log in.'); setIsSignUp(false); } else { await signIn(email, password); router.push('/dashboard'); } } catch (error) { alert(error.message); } finally { setLoading(false); } };
+  return <><Head><title>{isSignUp ? 'Create account' : 'Sign in'} | Vaultly</title></Head><main className="auth-page"><section className="card auth-card"><div className="brand auth-brand"><span className="brand-mark"><Icon name="lock" size={19}/></span><span>Vaultly</span></div><h1>{isSignUp ? 'Create your secure vault' : 'Welcome back'}</h1><p className="intro">{isSignUp ? 'Encrypted storage for the files that matter.' : 'Sign in to access your encrypted workspace.'}</p><form onSubmit={handleSubmit}><div className="field"><label htmlFor="email">Email address</label><input id="email" type="email" placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} required /></div><div className="field"><label htmlFor="password">Password</label><input id="password" type="password" placeholder="Enter your password" value={password} onChange={e=>setPassword(e.target.value)} required /></div><button className="btn btn-primary" type="submit" disabled={loading}><Icon name="lock" size={17}/>{loading ? 'Securing…' : (isSignUp ? 'Create account' : 'Sign in')}</button></form><button className="switcher" onClick={()=>setIsSignUp(!isSignUp)}>{isSignUp ? 'Already have an account? Sign in' : 'New here? Create an account'}</button></section></main></>;
 }

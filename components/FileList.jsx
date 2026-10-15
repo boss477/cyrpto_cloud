@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabaseClient';
 import { downloadEncryptedFile } from '../storage/downloadEncryptedFile';
 import RoleGuard from './RoleGuard';
 import { PERMISSIONS } from '../rbac/roleCheck';
+import Icon from './Icon';
 
 export default function FileList() {
     const [files, setFiles] = useState([]);
@@ -55,17 +56,17 @@ export default function FileList() {
         }
     };
 
-    if (loading) return <div>Loading records...</div>;
+    if (loading) return <div className="card empty-state"><div className="empty-icon"><Icon name="lock" /></div><h3>Opening your vault…</h3><p>Checking your encrypted records.</p></div>;
 
     const userRole = currentUser?.user_metadata?.role || 'viewer';
 
     return (
-        <div className="file-list">
-            <div className="list-header">
-                <h3>Secure Cloud Records</h3>
-                <span className="role-tag">View: {userRole.toUpperCase()}</span>
+        <div className="card table-card">
+            <div className="list-head">
+                <div><h2>Your records</h2><span style={{color:'var(--muted)',fontSize:13}}>Only you and approved roles can access these</span></div>
+                <span className="role-pill"><Icon name="shield" size={14}/> {userRole}</span>
             </div>
-            <table>
+            <div className="table-wrap"><table>
                 <thead>
                     <tr>
                         <th>Owner</th>
@@ -84,19 +85,19 @@ export default function FileList() {
                         return (
                             <tr key={file.id}>
                                 <td><span className="owner-email">{file.users?.email || 'Unknown'}</span></td>
-                                <td>{file.filename || <em style={{ color: '#aaa' }}>Text Only</em>}</td>
+                                <td><span className="file-name"><span className="file-icon"><Icon name="file" size={16}/></span>{file.filename || <em style={{ color: '#aaa' }}>Text note</em>}</span></td>
                                 <td className="notes-cell">{file.description || <em style={{ color: '#ccc' }}>No notes</em>}</td>
                                 <td>{new Date(file.created_at).toLocaleString()}</td>
                                 <td>
                                     <div className="action-buttons">
                                         {file.storage_path && (
                                             <RoleGuard allowedRoles={PERMISSIONS.DOWNLOAD}>
-                                                <button className="btn-download" onClick={() => handleDownload(file)}>Download</button>
+                                                <button className="icon-btn btn-primary" onClick={() => handleDownload(file)}><Icon name="download" size={14}/>Download</button>
                                             </RoleGuard>
                                         )}
                                         {canDelete && (
                                             <RoleGuard allowedRoles={PERMISSIONS.DELETE}>
-                                                <button className="btn-delete" onClick={() => handleDelete(file.id, file.storage_path)}>Delete</button>
+                                                <button className="icon-btn btn-danger" onClick={() => handleDelete(file.id, file.storage_path)}><Icon name="trash" size={14}/>Delete</button>
                                             </RoleGuard>
                                         )}
                                     </div>
@@ -105,22 +106,7 @@ export default function FileList() {
                         );
                     })}
                 </tbody>
-            </table>
-            <style jsx>{`
-                .file-list { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-                .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-                .role-tag { background: #eee; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-                table { width: 100%; border-collapse: collapse; }
-                th { background: #f8f9fa; padding: 15px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #eee; }
-                td { padding: 15px 10px; border-bottom: 1px solid #eee; }
-                .owner-email { font-size: 13px; color: #666; font-family: monospace; }
-                .notes-cell { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-                .action-buttons { display: flex; gap: 8px; }
-                button { padding: 8px 12px; border-radius: 6px; border: none; font-size: 13px; cursor: pointer; font-weight: 500; }
-                .btn-download { background: #0070f3; color: white; }
-                .btn-delete { background: #fff; color: #ff4d4f; border: 1px solid #ff4d4f; }
-                .btn-delete:hover { background: #fff1f0; }
-            `}</style>
+            </table></div>
         </div>
     );
 }
